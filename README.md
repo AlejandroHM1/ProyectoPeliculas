@@ -18,3 +18,22 @@ Un proceso es una instacioa de un inetprete de Python que tiene al menos un holo
 ###Hilo
 
 Un hilo de ejecucion en un proceso de Pyhton, tal como el MainThread o un nueco hilo. Se representa como una instacia de la clase threading.Tread. Un hilo es la representacion de un objeto de un hilo nativo proporcionado por el sistema operativo.
+
+##Creaion de un Hilo
+
+Para crear un hilo:
+
+   thread = threading.Thread(target=foo, args=(7, 'Hello World'))
+   thread.start()
+   thread.join()
+   
+Para crear una lista de hilos:
+
+thread_lst = [threading.Thread(target=foo) for i in range(5)]
+
+for i in thread_lst:
+  i.start()
+
+for i in thread_lst:
+  i.join()
+  print('return')
