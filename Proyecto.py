@@ -12,7 +12,7 @@ class VentanaPrincipal(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Mi buscador de peliculas")
+        self.setWindowTitle("Netfilx")
         self.resize(2000, 1000)
         self.contenedor = QWidget()
         self.lytPrincipal = QGridLayout()
