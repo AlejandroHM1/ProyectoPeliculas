@@ -24,7 +24,9 @@ Un hilo de ejecucion en un proceso de Pyhton, tal como el MainThread o un nueco 
 Para crear un hilo:
 
    thread = threading.Thread(target=foo, args=(7, 'Hello World'))
+   
    thread.start()
+   
    thread.join()
    
 Para crear una lista de hilos:
