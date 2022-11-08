@@ -1,71 +1,101 @@
 # Importar bibliotecas
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QLineEdit, QPushButton, QLabel
-from PyQt5.QtGui import QPixmap, QImage
+
+import json
 import requests
-import threading
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QLineEdit, QPushButton, QPlainTextEdit, \
+    QLabel, QTextEdit, QVBoxLayout
+from PyQt5.QtGui import QImage, QPixmap
 
 
 # Subclase QMainWindow
 class VentanaPrincipal(QMainWindow):
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Cuevana")
-        self.resize(800, 500)
+        self.setWindowTitle("Mi buscador de peliculas")
+        self.resize(2000, 1000)
         self.contenedor = QWidget()
+        self.lytPrincipal = QGridLayout()
+
+        lblBusca = QLabel("Palabras: ")
+        self.lnedtTexto = QLineEdit()
+        self.btnBusca = QPushButton("Buscar")
+        self.btnBusca.clicked.connect(self.split_text)
+
+        self.texto = QPlainTextEdit()
 
         leftcolumna = QWidget()
         centercolumna = QWidget()
         rightcolumna = QWidget()
 
-        self.lytPrincipal = QGridLayout()
-        self.lblBusca = QLabel("Palabras de peliculas a buscar: ")
-
-        self.lnedtTexto = QLineEdit()
-        self.btnBusca = QPushButton("Buscar")
-        self.btnBusca.clicked.connect(self.dividir_texto)
-        self.lytPrincipal.addWidget(self.lblBusca, 0, 0)
+        self.lytPrincipal.addWidget(lblBusca, 0, 0)
         self.lytPrincipal.addWidget(self.lnedtTexto, 0, 1)
         self.lytPrincipal.addWidget(self.btnBusca, 0, 2)
         self.lytPrincipal.addWidget(leftcolumna, 1, 0)
         self.lytPrincipal.addWidget(centercolumna, 1, 1)
         self.lytPrincipal.addWidget(rightcolumna, 1, 2)
+
         self.contenedor.setLayout(self.lytPrincipal)
         self.setCentralWidget(self.contenedor)
 
-    def dividir_texto(self):
+    def split_text(self):
         palabras = []
         lista = self.lnedtTexto.text()
+        print(lista)
         for palabras in lista:
             palabras = lista.split(",")
-        print(palabras)
         for i in palabras:
-            self.get_peliculas(i)
+            self.get_movies(i)
 
-    def get_peliculas(self, palabra):
+    def get_movies(self, palabra):
         url_servicio = "http://clandestina-hds.com:80/movies/title?search="
         r = requests.get(url_servicio + palabra)
         peliculas_data = r.json()
         index = 0
-        limit = 3
-        for pelicula in peliculas_data['results']:
-            print("La pelicula de nombre: {} \n Tiene una URL de imagen: {}".format(pelicula['title'],
-                                                                                    pelicula["image"]))
-            self.mostrarimagenes(pelicula["image"])
+        limit = 4
+        short_data_peliculas = peliculas_data['results'][:3]
+        for pelicula in short_data_peliculas:
+            print("La pelicula de nombre: {} \n Tiene una URL de imagen: {} \n Resumen :{} \n Aritstas: {}".format(
+                pelicula['title'],
+                pelicula["image"],
+                pelicula['plot'],
+                pelicula['starList']))
+            image = Poster(pelicula["image"])
+            resume = QTextEdit()
+            resume.setText(pelicula['plot'])
+            self.lytPrincipal.addWidget(image)
+            self.lytPrincipal.addWidget(resume)
+            self.contenedor.setLayout(self.lytPrincipal)
+            self.setCentralWidget(self.contenedor)
             index = index + 1
             if index == limit:
                 break
 
-    def mostrarimagenes(self, url_image):
-        image = QImage()
-        image.loadFromData(requests.get(url_image).content)
-        pixi = QPixmap.fromImage(image).scaled(150, 150)
-        image_label = QLabel()
-        image_label.setPixmap(QPixmap(pixi))
+    def serch_text(self):
+        cursor = self.texto.textCursor()
+        cursor.setPosition(0)
+        self.texto.setTextCursor(cursor)
+        cadena = self.lnedtTexto.text()
+        escrito = self.texto.find(cadena)
+        print("Película: ", escrito)
 
-        image_label.show()
-        self.lytPrincipal.addWidget(image_label)
-        self.contenedor.setLayout(self.lytPrincipal)
-        self.setCentralWidget(self.contenedor)
+
+class Poster(QLabel):
+    image_url: str
+
+    def __init__(self, image_url: str):
+        super().__init__()
+        self.image_url = image_url
+        image = QImage()
+        image.loadFromData(requests.get(self.image_url).content)
+        pixmap = QPixmap(image)
+        pixmap = pixmap.scaledToWidth(200)
+        self.setPixmap(pixmap)
+
+    # def mouseDoubleClickEvent(self, event):
+    #     if self.video_url is not None and self.video_url is not "":
+    #         url = QUrl(self.video_url)
+    #         QDesktopServices.openUrl(url)
 
 
 app = QApplication([])
@@ -73,4 +103,3 @@ window = VentanaPrincipal()
 window.show()
 
 app.exec_()
-
